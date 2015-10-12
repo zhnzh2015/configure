@@ -4,8 +4,8 @@ LOCAL_ROOT=..
 
 CXX=g++
 CXXFLAGS=-pipe -Wall -W -fPIC -O
-INCLUDE=-I$(WORK_ROOT)/public/bm_log/include
-LIBRARY=-L$(WORK_ROOT)/public/bm_log/lib
+INCLUDE=-I$(WORK_ROOT)/public/log/include
+LIBRARY=-L$(WORK_ROOT)/public/log/lib
 
 SOURCE_DIR=$(LOCAL_ROOT)/src
 OUTPUT_DIR=$(LOCAL_ROOT)/make/output
@@ -25,7 +25,7 @@ all: $(TARGET)
 $(OBJECT): $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.cc
 	$(CXX) -c -o $@ $< $(CXXFLAGS) $(INCLUDE)
 
-$(TARGET): $(OBJECT) $(WORK_ROOT)/public/bm_log/lib/libbm_log.a
+$(TARGET): $(OBJECT) $(WORK_ROOT)/public/log/lib/libbm_log.a
 	@rm -rf $@
 	$(AR) $@ $^ 
 

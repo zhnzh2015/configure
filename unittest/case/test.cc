@@ -51,7 +51,6 @@ void test_ConfigUtils() {
     }
     cout << bm::configure::CONFIG_GLOBAL << endl;
     cout << bm::configure::CONFIG_INCLUDE << endl;
-
 }
 
 void test_ConfigException() {
@@ -137,9 +136,8 @@ void test_Configure() {
 }
 
 int main() {
-    //test_ConfigUtils();
-    //test_ConfigException();
-    
+    test_ConfigUtils();
+    test_ConfigException();
     test_Configure();
 
     return 0;
