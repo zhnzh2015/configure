@@ -1,33 +1,34 @@
-#include <log.h>
-
 #include "ConfigUnit.h"
 #include "ConfigUtils.h"
 #include "ConfigError.h"
 #include "ConfigGroup.h"
 #include "ConfigException.h"
 
-namespace bm {
+#include <glog/logging.h>
+
+namespace jcpp {
 namespace configure {
 
-ConfigUnit::ConfigUnit(const std::string& key, const std::string& value,
-                        ConfigGroup *father, ConfigUtils::DataPosition data_pos) :
+ConfigUnit::ConfigUnit(const std::string& key,
+                       const std::string& value,
+                       ConfigGroup* father,
+                       ConfigUtils::DataPosition data_pos) :
                                 _m_key(key), _m_value(value), _m_cstr(value), _m_cstr_err(0),
                                 _m_father(father), _m_data_pos(data_pos) {
-    for (uint32_t k = 0; k < key.size(); ++k) {
-        if (k == 0 && key[k] == '@') {
+    for (uint32_t i = 0; i < key.size(); ++i) {
+        if (i == 0 && key[i] == '@') {
             continue;
         }
-        if (!isalpha(key[k]) && !isdigit(key[k]) && key[k] != '_') {
-            BM_LOG_WARNING("Unsupport key format [%s]", key.c_str());
+        if (!isalpha(key[i]) && !isdigit(key[i]) && key[i] != '_') {
+            LOG(WARNING) << "Unsupport key format [" << key << "]";
             throw ConfigException();
         }
     }
 
     if (_m_value.size() > 0 && _m_value[0] == '"') {
-        _m_cstr_err = ConfigUtils::str2str(_m_value, &_m_cstr);
+        _m_cstr_err = ConfigUtils::str2str(_m_value, _m_cstr);
         if (_m_cstr_err != CONFIG_ERROR_OK) {
-            BM_LOG_WARNING("Config Error format: key[%s], value[%s]",
-                            _m_key.c_str(), _m_value.c_str());
+            LOG(WARNING) << "Config Error format, key[" << _m_key << "],value[" << _m_value << "]";
         }
     }
 }
@@ -220,7 +221,7 @@ int32_t ConfigUnit::get_int16(int16_t* value) const {
     }
 
     int64_t val;
-    int32_t ret = ConfigUtils::str2int64(_m_value, &val);
+    int32_t ret = ConfigUtils::str2int64(_m_value, val);
     if (ret != CONFIG_ERROR_OK) {
         set_error_key_path(_m_key);
         return ret;
@@ -241,7 +242,7 @@ int32_t ConfigUnit::get_int32(int32_t* value) const {
     }
 
     int64_t val;
-    int32_t ret = ConfigUtils::str2int64(_m_value, &val);
+    int32_t ret = ConfigUtils::str2int64(_m_value, val);
     if (ret != CONFIG_ERROR_OK) {
         set_error_key_path(_m_key);
         return ret;
@@ -261,7 +262,7 @@ int32_t ConfigUnit::get_int64(int64_t* value) const {
     }
 
     int64_t val;
-    int32_t ret = ConfigUtils::str2int64(_m_value, &val);
+    int32_t ret = ConfigUtils::str2int64(_m_value, val);
     if (ret != CONFIG_ERROR_OK) {
         set_error_key_path(_m_key);
         return ret;
@@ -296,7 +297,7 @@ int32_t ConfigUnit::get_uint16(uint16_t* value) const {
         return CONFIG_ERROR_NULL_BUFFER;
     }
     uint64_t val;
-    int32_t ret = ConfigUtils::str2uint64(_m_value, &val);
+    int32_t ret = ConfigUtils::str2uint64(_m_value, val);
     if (ret != CONFIG_ERROR_OK) {
         set_error_key_path(_m_key);
         return ret;
@@ -317,7 +318,7 @@ int32_t ConfigUnit::get_uint32(uint32_t* value) const {
     }
 
     uint64_t val;
-    int32_t ret = ConfigUtils::str2uint64(_m_value, &val);
+    int32_t ret = ConfigUtils::str2uint64(_m_value, val);
     if (ret != CONFIG_ERROR_OK) {
         set_error_key_path(_m_key);
         return ret;
@@ -338,7 +339,7 @@ int32_t ConfigUnit::get_uint64(uint64_t* value) const {
     }
 
     uint64_t val;
-    int32_t ret = ConfigUtils::str2uint64(_m_value, &val);
+    int32_t ret = ConfigUtils::str2uint64(_m_value, val);
     if (ret != CONFIG_ERROR_OK) {
         set_error_key_path(_m_key);
         return ret;
@@ -354,7 +355,7 @@ int32_t ConfigUnit::get_float(float* value) const {
     }
 
     double buf = 0.0;
-    int32_t ret = ConfigUtils::str2double(_m_value, &buf);
+    int32_t ret = ConfigUtils::str2double(_m_value, buf);
     if (ret != CONFIG_ERROR_OK) {
         set_error_key_path(_m_key);
         return ret;
@@ -369,7 +370,7 @@ int32_t ConfigUnit::get_double(double* value) const {
         return CONFIG_ERROR_NULL_BUFFER;
     }
 
-    int32_t ret = ConfigUtils::str2double(_m_value, value);
+    int32_t ret = ConfigUtils::str2double(_m_value, *value);
     if (ret != CONFIG_ERROR_OK) {
         set_error_key_path(_m_key);
     }
@@ -521,10 +522,9 @@ int32_t ConfigUnit::set_value(const std::string& value, int except) {
     _m_value = value;
     _m_cstr = _m_value;
     if (_m_value.size() > 0 && _m_value[0] == '"') {
-        _m_cstr_err = ConfigUtils::str2str(_m_value, &_m_cstr);
+        _m_cstr_err = ConfigUtils::str2str(_m_value, _m_cstr);
         if (_m_cstr_err != CONFIG_ERROR_OK) {
-            BM_LOG_WARNING("Config Error format: key[%s],value[%s]",
-                                    _m_key.c_str(), _m_value.c_str());
+            LOG(WARNING) << "Config Error format: key[" << _m_key << "],value[" << _m_value << "]";
             if (except) {
                 throw_error(NULL, _m_cstr_err);
             }
@@ -544,7 +544,7 @@ void ConfigUnit::set_error_key_path(const std::string &str) const {
     }
 
     if (ConfigUtils::set_error_info("%s", err_key_path.c_str()) < 0) {
-        BM_LOG_WARNING("Configure: failed to write Error key path to error buffer");
+        LOG(WARNING) << "Configure: failed to write Error key path to error buffer";
     }
 }
 
@@ -553,7 +553,7 @@ ConfigUnit* ConfigUnit::get_err_instance() {
     if (instance == NULL) {
         instance = new(std::nothrow) ConfigError();
         if (instance == NULL) {
-            BM_LOG_WARNING("Allocate memory for ConfigError failed!");
+            LOG(WARNING) << "Allocate memory for ConfigError failed!";
         }
     }
     return instance;
@@ -561,30 +561,18 @@ ConfigUnit* ConfigUnit::get_err_instance() {
 
 const char* ConfigUnit::error_info(const ConfigErrorNo &err) const {
     switch (err) {
-    case CONFIG_ERROR_OK:
-        return "OK";
-    case CONFIG_ERROR_NO_SUCH_KEY:
-        return "No such key";
-    case CONFIG_ERROR_DUPLICATED_KEY:
-        return "Duplicated key";
-    case CONFIG_ERROR_OUT_OF_RANGE:
-        return "Out of range";
-    case CONFIG_ERROR_GROUP_TO_UNIT:
-        return "Use group as key";
-    case CONFIG_ERROR_FORMAT_ERROR:
-        return "Format error";
-    case CONFIG_ERROR_CONSTRAINT_ERROR:
-        return "Constraint error";
-    case CONFIG_ERROR_CONFIG_ERROR:
-        return "Config error";
-    case CONFIG_ERROR_NULL_VALUE:
-        return "Value is null";
-    case CONFIG_ERROR_NULL_BUFFER:
-        return "Given buffer is null";
-    case CONFIG_ERROR_ERROR:
-        return "Something wrong";
-    case CONFIG_ERROR_UNKNOWN:
-        // pass to default
+    case CONFIG_ERROR_OK: return "OK";
+    case CONFIG_ERROR_NO_SUCH_KEY: return "No such key";
+    case CONFIG_ERROR_DUPLICATED_KEY: return "Duplicated key";
+    case CONFIG_ERROR_OUT_OF_RANGE: return "Out of range";
+    case CONFIG_ERROR_GROUP_TO_UNIT: return "Use group as key";
+    case CONFIG_ERROR_FORMAT_ERROR: return "Format error";
+    case CONFIG_ERROR_CONSTRAINT_ERROR: return "Constraint error";
+    case CONFIG_ERROR_CONFIG_ERROR: return "Config error";
+    case CONFIG_ERROR_NULL_VALUE: return "Value is null";
+    case CONFIG_ERROR_NULL_BUFFER: return "Given buffer is null";
+    case CONFIG_ERROR_ERROR: return "Something wrong";
+    case CONFIG_ERROR_UNKNOWN: // pass to default
     default:
         return "Unknown error";
     }
@@ -600,4 +588,4 @@ void ConfigUnit::throw_error(ConfigErrorNo* p_err_code, const int32_t& err_code)
 }
 
 }; // END namespace configure
-}; //END namespace bm
+}; //END namespace jcpp

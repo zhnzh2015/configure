@@ -1,11 +1,11 @@
-#ifndef BM_CONFIGURE_CONFIG_ARRAY_H
-#define BM_CONFIGURE_CONFIG_ARRAY_H
+#ifndef JCPP_CONFIGURE_CONFIG_ARRAY_H
+#define JCPP_CONFIGURE_CONFIG_ARRAY_H
 
 #include <vector>
 #include <string>
 #include "ConfigGroup.h"
 
-namespace bm {
+namespace jcpp {
 namespace configure {
 
 class ConfigArray : public ConfigGroup {
@@ -36,5 +36,6 @@ protected:
 }; // END class ConfigArray
 
 } // END namespace configure
-} // END namespace bm
-#endif  // BM_CONFIGURE_CONFIG_ARRAY_H
+} // END namespace jcpp
+
+#endif  // JCPP_CONFIGURE_CONFIG_ARRAY_H

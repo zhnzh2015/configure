@@ -1,12 +1,12 @@
 #include "ConfigGroup.h"
 
 #include <boost/foreach.hpp>
-#include <log.h>
+#include <glog/logging.h>
 
 #include "ConfigException.h"
 #include "ConfigArray.h"
 
-namespace bm {
+namespace jcpp {
 namespace configure {
 
 const ConfigUnit& ConfigGroup::operator[](const char* str) const {
@@ -408,7 +408,7 @@ bool ConfigGroup::equals(const ConfigUnit& unit) const {
         }
         return true;
     } catch (ConfigException &e) {
-        BM_LOG_WARNING("Config.ConfigGroup.equals() receive an exception[%s]", e.what());
+        LOG(WARNING) << "Config.ConfigGroup.equals() receive an exception[" << e.what() << "]";
         return false;
     }
     return false;
@@ -420,7 +420,7 @@ int32_t ConfigGroup::push(const std::string& key, ConfigUnit* unit) {
             _m_field_map[key] = unit;
             _m_field_list.push_back(key);
         } else {
-            BM_LOG_WARNING("Configure: [%s] Duplicate key [%s]", _m_name.c_str(), key.c_str());
+            LOG(WARNING) << "Configure: [" << _m_name << "] Duplicate key [" << key << "]";
             throw ConfigException().append("Duplicate key [%s]", _m_name.c_str());
             return CONFIG_ERROR_DUPLICATED_KEY;
         }
@@ -430,14 +430,14 @@ int32_t ConfigGroup::push(const std::string& key, ConfigUnit* unit) {
             if (it->second->self_type() == CONFIG_TYPE_ARRAY) {
                 (static_cast<ConfigArray*>(it->second))->push(key, unit);
             } else {
-                BM_LOG_WARNING("Configure : ambiguity key [%s]", key.c_str());
+                LOG(WARNING) << "Configure : ambiguity key [" << key << "]";
                 throw ConfigException().append("Ambiguity key [%s]", key.c_str());
                 return CONFIG_ERROR_CONFIG_ERROR;
             }
         } else {
             ConfigArray *array = new(std::nothrow) ConfigArray(key.c_str() + 1, this);
             if (array == NULL) {
-                BM_LOG_WARNING("Allocate memory for ConfigArray [%s] failed", key.c_str() + 1);
+                LOG(WARNING) << "Allocate memory for ConfigArray [" << key.substr(1) << "] failed";
                 throw ConfigException();
             }
 
@@ -456,7 +456,7 @@ void ConfigGroup::create(const char* name, ConfigGroup* father) {
     }
     while (*p != 0) {
         if (!isalpha(*p) && !isdigit(*p) && *p != '_') {
-            BM_LOG_WARNING("Configure: Unsupport Group name [%s]", name);
+            LOG(WARNING) << "Configure: Unsupport Group name [" << name << "]";
             throw ConfigException();
         }
         ++p;
@@ -509,8 +509,8 @@ ConfigUnit* ConfigGroup::find_section(const std::string &section_name, uint32_t*
     if (dot_idx != std::string::npos) {
         FieldMapType::iterator find_it = _m_field_map.find(section_name.substr(0, dot_idx));
         if (find_it == _m_field_map.end()) {
-            BM_LOG_WARNING("Configure: No previous section named [%s]",
-                                                section_name.substr(0, dot_idx).c_str());
+            LOG(WARNING) << "Configure: No previous section named ["
+                         << section_name.substr(0, dot_idx) << "]";
             throw ConfigException();
         }
         ++(*depth);
@@ -522,7 +522,7 @@ ConfigUnit* ConfigGroup::find_section(const std::string &section_name, uint32_t*
         ConfigGroup* new_group = new(std::nothrow) ConfigGroup(section_name.c_str(),
                                             this, ConfigUtils::cur_data_pos, _m_dup_level);
         if (new_group == NULL) {
-            BM_LOG_WARNING("Allocate memory for new section [%s] failed", section_name.c_str());
+            LOG(WARNING) << "Allocate memory for new section [" << section_name << "] failed";
             throw ConfigException();
         }
 
@@ -537,13 +537,13 @@ ConfigUnit* ConfigGroup::find_section(const std::string &section_name, uint32_t*
     } else {
         ++(*depth);
         if (field_it->second->self_type() != CONFIG_TYPE_GROUP) {
-            BM_LOG_WARNING("Config : Duplicate key or group name [%s]", section_name.c_str());
+            LOG(WARNING) << "Config : Duplicate key or group name [" << section_name << "]";
             throw ConfigException();
         } else if (!(_m_dup_level == GROUP_DUP_LEVEL_0 ||
                      (_m_dup_level == GROUP_DUP_LEVEL_1 && *depth > 1))) {
             DupMapType::iterator dup_it = _m_dup_map.find(field_it->second);
             if (dup_it == _m_dup_map.end()) {
-                BM_LOG_WARNING("Config : dup-map failed to find [%s]", section_name.c_str());
+                LOG(WARNING) << "Config : dup-map failed to find [" << section_name << "]";
                 throw ConfigException();
             }
             dup_it->second.push_back(ConfigUtils::cur_data_pos);
@@ -560,10 +560,9 @@ void ConfigGroup::print_dup() const {
             continue;
         }
         for (uint32_t k = 0; k < unit_it->second.size(); ++k) {
-            BM_LOG_NOTICE("[Group: %s][File: %s][Line: %u]",
-                                    unit_it->first->get_key().c_str(),
-                                    unit_it->second[k].file_name.c_str(),
-                                    unit_it->second[k].file_line);
+            LOG(INFO) << "[Group: " << unit_it->first->get_key() << "]"
+                      << "[File: " << unit_it->second[k].file_name << "]"
+                      << "[Line: " << unit_it->second[k].file_line << "]";
         }
     }
 }
@@ -577,4 +576,4 @@ void ConfigGroup::clear() {
 }
 
 } // END namespace configure
-} // END namespace bm
+} // END namespace jcpp

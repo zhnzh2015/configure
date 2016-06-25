@@ -1,8 +1,9 @@
 #include "ConfigArray.h"
-#include <log.h>
 #include "ConfigException.h"
 
-namespace bm {
+#include <glog/logging.h>
+
+namespace jcpp {
 namespace configure {
 
 ConfigArray::ConfigArray(const char* name, ConfigGroup* father) {
@@ -66,7 +67,7 @@ bool ConfigArray::equals(const ConfigUnit& unit) const {
         }
         return true;
     } catch (ConfigException& e) {
-        BM_LOG_WARNING("Config.ConfigArray.equals triggered an exception [%s]", e.what());
+        LOG(WARNING) << "Config.ConfigArray.equals triggered an exception [" << e.what() << "]";
         return false;
     }
     return false;

@@ -1,21 +1,20 @@
 #include "Configure.h"
 #include <boost/algorithm/string.hpp>
-
-#include <log.h>
+#include <glog/logging.h>
 
 #include "ConfigException.h"
 
-namespace bm {
+namespace jcpp {
 namespace configure {
 
 int32_t Configure::load(const char* path, const char* conf, int32_t dup_level) {
     if (path == NULL || conf == NULL) {
-        BM_LOG_WARNING("Configure.load : path or filename error...");
+        LOG(WARNING) << "Configure.load : path or filename error...";
         return CONFIG_ERROR_ERROR;
     }
 
     if (_m_conf_flist.size() != 0) {
-        BM_LOG_WARNING("Configure had at least read a file before!");
+        LOG(WARNING) << "Configure had at least read a file before!";
         return CONFIG_ERROR_ERROR;
     }
 
@@ -30,14 +29,14 @@ int32_t Configure::load(const char* path, const char* conf, int32_t dup_level) {
     for (size_t idx = 0; idx < _m_conf_flist.size(); ++idx) {
         std::vector<std::string> content;
         if (ConfigUtils::read_file(_m_path + "/" + _m_conf_flist[idx].second, content) < 0) {
-            BM_LOG_WARNING("Can't read conf [%s]", _m_conf_flist[idx].second.c_str());
+            LOG(WARNING) << "Can't read conf [" << _m_conf_flist[idx].second << "]";
             continue;
         }
         ConfigUtils::cur_data_pos.file_name = _m_conf_flist[idx].second;
         _m_section = this;
         _m_depth = 0;
         for (size_t k = 0; k < content.size(); ++k) {
-            ConfigUtils::cur_data_pos.file_line = k;
+            ConfigUtils::cur_data_pos.file_line = k + 1;
             process_line(content[k], _m_conf_flist[idx].first);
         }
     }
@@ -54,7 +53,7 @@ int32_t Configure::process_line(const std::string& str, int32_t level) {
     if (line[0] == '[') {
         std::string section_name;
         if (ConfigUtils::section_parser(line, section_name) < 0) {
-            BM_LOG_WARNING("Configure read section [%s] failed", str.c_str());
+            LOG(WARNING) << "Configure read section [" << str << "] failed";
             return CONFIG_ERROR_FORMAT_ERROR;
         }
         change_section(section_name);
@@ -62,7 +61,7 @@ int32_t Configure::process_line(const std::string& str, int32_t level) {
         std::string key;
         std::string value;
         if (ConfigUtils::line_parser(line, key, value) < 0) {
-            BM_LOG_WARNING("Configure read key,value [%s] failed", str.c_str());
+            LOG(WARNING) << "Configure read line [" << str << "] failed";
             return CONFIG_ERROR_FORMAT_ERROR;
         }
         if (key == CONFIG_INCLUDE) {
@@ -78,7 +77,7 @@ int32_t Configure::push_pair(const std::string& key, const std::string& value) {
     ConfigUnit *unit = new(std::nothrow) ConfigUnit(key, value,
                                                         _m_section, ConfigUtils::cur_data_pos);
     if (unit == NULL) {
-        BM_LOG_WARNING("Allocate memory failed. key=[%s],value=[%s]", key.c_str(), value.c_str());
+        LOG(WARNING) << "Allocate memory failed. key=[" << key << "],value=[" << value << "]";
         return CONFIG_ERROR_ERROR;
     }
 
@@ -102,7 +101,7 @@ int32_t Configure::change_section(std::string section_name) {
         }
 
         if (k > _m_depth) {
-            BM_LOG_WARNING("Configure : Section Error [%s] Ignored.", section_name.c_str());
+            LOG(WARNING) << "Configure : Section Error [" << section_name << "] Ignored.";
             throw ConfigException();
         }
         section_name = section_name.substr(k);
@@ -119,9 +118,10 @@ int32_t Configure::change_section(std::string section_name) {
     _m_section = (ConfigGroup *)_m_section->find_section(section_name, &_m_depth);
     if (_m_section == NULL) {
         _m_section = _orig_section;
+        LOG(WARNING) << "Change section failed, can't find target section, use previous section";
     }
     return 0;
 }
 
 } // END namespace configure
-} // END namespace bm
+} // END namespace jcpp

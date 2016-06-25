@@ -1,29 +1,29 @@
 #include "ConfigUtils.h"
 #include <errno.h>
-#include <cstdlib>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
-#include "constants.h"
 
-namespace bm {
+namespace jcpp {
 namespace configure {
 
 ConfigUtils::DataPosition ConfigUtils::cur_data_pos = ConfigUtils::DataPosition();
 const ConfigUtils::DataPosition ConfigUtils::EMPTY_DATA_POS = ConfigUtils::DataPosition();
 
-// \0	空字符(NULL)	00H/0
-// \n	换行符(LF)	0AH/10
-// \r	回车符(CR)	0DH/13
-// \t	水平制表符(HT)	09H/9
-// \v	垂直制表(VT)	0B/11
-// \a	响铃(BEL) 	07/7
-// \b	退格符(BS)	08H/8
-// \f	换页符(FF)	0CH/12
-// \'	单引号	27H/39
-// \"	双引号	22H/34
-// \\	反斜杠	5CH/92
-// \ddd 	任意字符 	三位八进制
-// \xhh 	任意字符 	二位十六进制
+//
+// \0    空字符(NULL)      00H/0
+// \n    换行符(LF)        0AH/10
+// \r    回车符(CR)        0DH/13
+// \t    水平制表符(HT)    09H/9
+// \v    垂直制表(VT)      0B/11
+// \a    响铃(BEL)         07/7
+// \b    退格符(BS)        08H/8
+// \f    换页符(FF)        0CH/12
+// \'    单引号            27H/39
+// \"    双引号            22H/34
+// \\    反斜杠            5CH/92
+// \ddd  任意字符          三位八进制
+// \xhh  任意字符          二位十六进制
+//
 static int hex2int(char c) {
     if (c >= 'A' && c <= 'F') return int(c - 'A' + 10);
     if (c >= 'a' && c <= 'f') return int(c - 'a' + 10);
@@ -31,13 +31,13 @@ static int hex2int(char c) {
     return -255;
 }
 
-int32_t ConfigUtils::str2str(const std::string& str, std::string* buf) {
+int32_t ConfigUtils::str2str(const std::string& str, std::string& buf) {
     if (str.size() == 0 || str[0] != '\"') {
-        *buf = str;
+        buf = str;
         return 0;
     }
 
-    *buf = "";
+    buf = "";
     for (size_t i = 1; i < str.size(); ++i) {
         if (str[i] == '\"') {
             return 0;
@@ -50,17 +50,17 @@ int32_t ConfigUtils::str2str(const std::string& str, std::string* buf) {
                 return CONFIG_ERROR_FORMAT_ERROR;
             }
             switch (str[i]) {
-            case '0': buf->push_back('\0'); break;
-            case 'n': buf->push_back('\n'); break;
-            case 'r': buf->push_back('\r'); break;
-            case 't': buf->push_back('\t'); break;
-            case 'v': buf->push_back('\v'); break;
-            case 'a': buf->push_back('\a'); break;
-            case 'b': buf->push_back('\b'); break;
-            case 'f': buf->push_back('\f'); break;
-            case '\'': buf->push_back('\''); break;
-            case '\"': buf->push_back('\"'); break;
-            case '\\': buf->push_back('\\'); break;
+            case '0': buf.push_back('\0'); break;
+            case 'n': buf.push_back('\n'); break;
+            case 'r': buf.push_back('\r'); break;
+            case 't': buf.push_back('\t'); break;
+            case 'v': buf.push_back('\v'); break;
+            case 'a': buf.push_back('\a'); break;
+            case 'b': buf.push_back('\b'); break;
+            case 'f': buf.push_back('\f'); break;
+            case '\'': buf.push_back('\''); break;
+            case '\"': buf.push_back('\"'); break;
+            case '\\': buf.push_back('\\'); break;
             case 'x':
                 if (i + 2 >= str.size()) {
                     return CONFIG_ERROR_FORMAT_ERROR;
@@ -69,7 +69,7 @@ int32_t ConfigUtils::str2str(const std::string& str, std::string* buf) {
                 if (c < 0) {
                     return CONFIG_ERROR_FORMAT_ERROR;
                 } else {
-                    buf->push_back(char(c));
+                    buf.push_back(char(c));
                 }
                 i += 2;
                 break;
@@ -79,7 +79,7 @@ int32_t ConfigUtils::str2str(const std::string& str, std::string* buf) {
                     if (c > 255) {
                         return CONFIG_ERROR_FORMAT_ERROR;
                     } else {
-                        buf->push_back(char(c));
+                        buf.push_back(char(c));
                     }
                 } else {
                     return CONFIG_ERROR_FORMAT_ERROR;
@@ -88,20 +88,20 @@ int32_t ConfigUtils::str2str(const std::string& str, std::string* buf) {
                 break;
             }
         } else {
-            buf->push_back(str[i]);
+            buf.push_back(str[i]);
         }
     }
     return CONFIG_ERROR_FORMAT_ERROR;
 }
 
-int32_t ConfigUtils::str2int64(const std::string& str, int64_t* buf) {
+int32_t ConfigUtils::str2int64(const std::string& str, int64_t& buf) {
     if (str.size() == 0) {
         return CONFIG_ERROR_NULL_VALUE;
     }
 
     char *endptr = NULL;
     errno = 0;
-    *buf = strtoll(str.c_str(), &endptr, 0);
+    buf = strtoll(str.c_str(), &endptr, 0);
     if (errno == ERANGE) {
         return CONFIG_ERROR_OUT_OF_RANGE;
     }
@@ -112,18 +112,18 @@ int32_t ConfigUtils::str2int64(const std::string& str, int64_t* buf) {
     return 0;
 }
 
-int32_t ConfigUtils::str2uint64(const std::string& str, uint64_t* buf) {
+int32_t ConfigUtils::str2uint64(const std::string& str, uint64_t& buf) {
     if (str.size() == 0) {
         return CONFIG_ERROR_NULL_VALUE;
     }
 
     if (str[0] == '-') {
-        return CONFIG_ERROR_FORMAT_ERROR;
+        return CONFIG_ERROR_OUT_OF_RANGE;
     }
 
     char *endptr = NULL;
     errno = 0;
-    *buf = strtoull(str.c_str(), &endptr, 0);
+    buf = strtoull(str.c_str(), &endptr, 0);
     if (errno == ERANGE) {
         return CONFIG_ERROR_OUT_OF_RANGE;
     }
@@ -134,14 +134,14 @@ int32_t ConfigUtils::str2uint64(const std::string& str, uint64_t* buf) {
     return 0;
 }
 
-int32_t ConfigUtils::str2double(const std::string& str, double* buf) {
+int32_t ConfigUtils::str2double(const std::string& str, double& buf) {
     if (str.size() == 0) {
         return CONFIG_ERROR_NULL_VALUE;
     }
 
     char *endptr = NULL;
     errno = 0;
-    *buf = strtod(str.c_str(), &endptr);
+    buf = strtod(str.c_str(), &endptr);
     if (errno == ERANGE) {
         return CONFIG_ERROR_OUT_OF_RANGE;
     }
@@ -248,12 +248,12 @@ int32_t ConfigUtils::line_parser(const std::string& line, std::string& key, std:
 }
 
 int32_t ConfigUtils::section_parser(const std::string& str, std::string& section) {
-    size_t right_square_bracket_idx = str.find(']');
-    if (right_square_bracket_idx == std::string::npos) {
+    std::string new_str = boost::trim_copy(str.substr(0, str.find('#')));
+    if (new_str.size() < 2 || new_str[0] != '[' || new_str[new_str.size() - 1] != ']') {
         return CONFIG_ERROR_FORMAT_ERROR;
     }
 
-    std::string t_section = boost::trim_copy(str.substr(1, right_square_bracket_idx - 1));
+    std::string t_section = boost::trim_copy(new_str.substr(1, new_str.size() - 2));
     if (t_section.size() == 0) {
         return CONFIG_ERROR_NULL_VALUE;
     }
@@ -262,10 +262,6 @@ int32_t ConfigUtils::section_parser(const std::string& str, std::string& section
         if (isspace(t_section[k])) {
             return CONFIG_ERROR_FORMAT_ERROR;
         }
-    }
-    std::string remain_str = boost::trim_copy(str.substr(right_square_bracket_idx + 1));
-    if (remain_str.size() > 0 && remain_str[0] != '#') {
-        return CONFIG_ERROR_FORMAT_ERROR;
     }
     section = t_section;
     return 0;
@@ -286,4 +282,4 @@ int32_t ConfigUtils::read_file(const std::string& fname, std::vector<std::string
 }
 
 } // END namespace configure
-} // END namespace bm
+} // END namespace jcpp

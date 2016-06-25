@@ -1,5 +1,5 @@
-#ifndef BM_CONFIGURE_CONFIG_GROUP_H
-#define BM_CONFIGURE_CONFIG_GROUP_H
+#ifndef JCPP_CONFIGURE_CONFIG_GROUP_H
+#define JCPP_CONFIGURE_CONFIG_GROUP_H
 
 #include <vector>
 #include <boost/unordered_map.hpp>
@@ -9,7 +9,7 @@
 #include "ConfigError.h"
 #include "Constants.h"
 
-namespace bm {
+namespace jcpp {
 namespace configure {
 
 class ConfigGroup : public ConfigError {
@@ -98,11 +98,11 @@ public:
     virtual int32_t self_type() const { return CONFIG_TYPE_GROUP; }
     virtual uint32_t size() const { return _m_field_map.size(); }
 
-    void print_dup() const;
-
-    int32_t push(const std::string& key, ConfigUnit* unit);
+    virtual int32_t push(const std::string& key, ConfigUnit* unit);
     ConfigUnit* find_section(const std::string &section_name, uint32_t* depth);
     int32_t get_level() const { return _m_level; }
+
+    void print_dup() const;
 
 protected:
     void create(const char* name, ConfigGroup* father=NULL);
@@ -121,6 +121,6 @@ protected:
 }; // END class ConfigGroup
 
 } // END namespace configure
-} // END namespace bm
+} // END namespace jcpp
 
-#endif  // BM_CONFIGURE_CONFIG_GROUP_H
+#endif  // JCPP_CONFIGURE_CONFIG_GROUP_H

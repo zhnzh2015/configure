@@ -1,7 +1,9 @@
-#ifndef BM_CONFIGURE_CONSTANTS_H
-#define BM_CONFIGURE_CONSTANTS_H
+#ifndef JCPP_CONFIGURE_CONSTANTS_H
+#define JCPP_CONFIGURE_CONSTANTS_H
 
-namespace bm {
+#include <cstdlib>
+
+namespace jcpp {
 namespace configure {
 
 enum ConfigType {
@@ -39,5 +41,6 @@ static const char* CONFIG_INCLUDE = "$include";
 const uint32_t MAX_INCLUDE_DEPTH = 1;
 
 }; // END namespace configure
-}; // END namespace bm
-#endif
+}; // END namespace jcpp
+
+#endif // JCPP_CONFIGURE_CONSTANTS_H

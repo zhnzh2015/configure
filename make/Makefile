@@ -1,41 +1,51 @@
 AR := ar crs
-WORK_ROOT=../../..
-LOCAL_ROOT=..
+ROOT=../../..
+WORK_ROOT=..
 
 CXX=g++
 CXXFLAGS=-pipe -Wall -W -fPIC -O
-INCLUDE=-I$(WORK_ROOT)/public/log/include
-LIBRARY=-L$(WORK_ROOT)/public/log/lib
+#INCLUDE=-I$(ROOT)/public/log/include -I$(WORK_ROOT)/include
+INCLUDE=-I$(ROOT)/third/boost/1.61.0/include \
+		-I$(ROOT)/third/gtest/1.7.0/include \
+		-I$(ROOT)/third/glog/0.3.4/include \
+		-I$(WORK_ROOT)/include
 
-SOURCE_DIR=$(LOCAL_ROOT)/src
-OUTPUT_DIR=$(LOCAL_ROOT)/make/output
+LIBRARY=-L$(ROOT)/third/boost/1.61.0/lib \
+		-L$(ROOT)/third/gtest/1.7.0/lib \
+		-L$(ROOT)/third/glog/0.3.4/lib
+
+SOURCE_DIR=$(WORK_ROOT)/src
+HEADER_DIR=$(WORK_ROOT)/include
+UNITTEST_DIR=$(WORK_ROOT)/unittest/case
+UNITTEST_DEST_DIR=$(WORK_ROOT)/unittest/bin
+OUTPUT_DIR=$(WORK_ROOT)/make/output
 OBJECT_DIR=$(OUTPUT_DIR)/obj
 TARGET_DIR=$(OUTPUT_DIR)/lib
+UT_DIR=$(OUTPUT_DIR)/ut
 
-SOURCE=$(foreach dir,$(subst :, ,$(SOURCE_DIR)),$(wildcard $(dir)/*.cc))
-OBJECT = $(addprefix $(OBJECT_DIR)/, \
-			$(foreach obj,$(subst .cc,.o,$(SOURCE)),$(shell basename $(obj))))
-TARGET=$(TARGET_DIR)/libbm_configure.a
+SOURCE=$(foreach dir, $(subst :, ,$(SOURCE_DIR)), $(wildcard $(dir)/*.cc))
+OBJECT=$(addprefix $(OBJECT_DIR)/, $(foreach obj,$(subst .cc,.o,$(SOURCE)),$(shell basename $(obj))))
+TARGET=$(TARGET_DIR)/libconfigure.a
+UNITTEST_SRC=$(foreach dir, $(subst :,  ,$(UNITTEST_DIR)), $(wildcard $(dir)/*.cc))
+UNITTEST_DEST=$(subst case,bin, $(subst .cc,  ,$(UNITTEST_SRC)))
 
-MAKE_DIR := $(shell mkdir -p $(OBJECT_DIR) $(TARGET_DIR))
+MAKE_DIR := $(shell mkdir -p $(OBJECT_DIR) $(TARGET_DIR) $(UNITTEST_DEST_DIR))
 
-all: $(TARGET)
+all: $(TARGET) $(UNITTEST_DEST)
 	@echo "\033[1;5;32mBuild $^ succeed\033[0m"
 
-$(OBJECT): $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.cc
+$(OBJECT): $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.cc $(HEADER_DIR)/%.h $(HEADER_DIR)/Constants.h
 	$(CXX) -c -o $@ $< $(CXXFLAGS) $(INCLUDE)
 
-$(TARGET): $(OBJECT) $(WORK_ROOT)/public/log/lib/libbm_log.a
-	@rm -rf $@
+$(TARGET): $(OBJECT)
 	$(AR) $@ $^ 
 
+$(UNITTEST_DEST): $(UNITTEST_DEST_DIR)/%: $(UNITTEST_DIR)/%.cc $(OBJECT)
+	$(CXX) $^ -o $@ $(INCLUDE) $(LIBRARY) -lgtest -lglog
+
 publish: $(TARGET)
-	rm -rf $(LOCAL_ROOT)/include
-	rm -rf $(LOCAL_ROOT)/lib
-	mkdir -p $(LOCAL_ROOT)/include
-	mkdir -p $(LOCAL_ROOT)/lib
-	cp $(SOURCE_DIR)/*.h $(LOCAL_ROOT)/include
-	cp $(TARGET_DIR)/*.a $(LOCAL_ROOT)/lib
+	rm -rf $(WORK_ROOT)/lib
+	cp -r $(TARGET_DIR) $(WORK_ROOT)
 	@echo "\033[1;5;32mPublish succeed!\033[0m"
 
 clean:
@@ -43,7 +53,7 @@ clean:
 
 clean-all:
 	@rm -rf $(OUTPUT_DIR)
-	@rm -rf $(LOCAL_ROOT)/include
-	@rm -rf $(LOCAL_ROOT)/lib
+	@rm -rf $(WORK_ROOT)/lib
+	@rm -rf $(UNITTEST_DEST_DIR)/*
 
 .PHONY: all clean clean-all publish

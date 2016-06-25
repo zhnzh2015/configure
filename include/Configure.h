@@ -1,15 +1,15 @@
-#ifndef BM_CONFIGURE_CONFIGURE_H
-#define BM_CONFIGURE_CONFIGURE_H
+#ifndef JCPP_CONFIGURE_CONFIGURE_H
+#define JCPP_CONFIGURE_CONFIGURE_H
 
 #include <vector>
 #include "ConfigGroup.h"
 
-namespace bm {
+namespace jcpp {
 namespace configure {
 
 class Configure : public ConfigGroup {
 public:
-    Configure() : _m_section(this) { create(CONFIG_GLOBAL); }
+    Configure() : _m_section(this) { create(CONFIG_GLOBAL, NULL); }
     ~Configure() {}
 
     int32_t load(const char* path, const char* conf, int32_t dup_level=GROUP_DUP_LEVEL_0);
@@ -28,5 +28,5 @@ private:
 }; // END class Configure
 
 } // END namespace configure
-} // END namespace bm
-#endif  // BM_CONFIGURE_CONFIGURE_H
+} // END namespace jcpp 
+#endif  // JCPP_CONFIGURE_CONFIGURE_H

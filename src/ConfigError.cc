@@ -1,7 +1,8 @@
 #include "ConfigError.h"
-#include <log.h>
 
-namespace bm {
+#include <glog/logging.h>
+
+namespace jcpp {
 namespace configure {
 
 char ConfigError::to_char(ConfigErrorNo* p_err_code) const {
@@ -306,7 +307,7 @@ int32_t ConfigError::get_cstr(char* value, size_t len, const char* def) const {
 int32_t ConfigError::set_value(const std::string& /*value*/, int except) {
     if (except) {
         if (ConfigUtils::set_error_info("%s", "Can't ConfigError::set_value") < 0) {
-            BM_LOG_WARNING("ConfigUnit: failed to write error buffer");
+            LOG(WARNING) << "ConfigUnit: failed to write error buffer";
         }
         throw_error(NULL, CONFIG_ERROR_NO_SUCH_KEY);
     }
@@ -314,4 +315,4 @@ int32_t ConfigError::set_value(const std::string& /*value*/, int except) {
 }
 
 } // END namespace configure
-} // END namespace bm
+} // END namespace jcpp
