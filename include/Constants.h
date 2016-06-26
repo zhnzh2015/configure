@@ -2,6 +2,7 @@
 #define JCPP_CONFIGURE_CONSTANTS_H
 
 #include <cstdlib>
+#include <stdint.h>
 
 namespace jcpp {
 namespace configure {

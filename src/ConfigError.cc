@@ -1,5 +1,6 @@
 #include "ConfigError.h"
 
+#include <cstdio>
 #include <glog/logging.h>
 
 namespace jcpp {

@@ -4,6 +4,7 @@
 #include "ConfigGroup.h"
 #include "ConfigException.h"
 
+#include <cstdio>
 #include <glog/logging.h>
 
 namespace jcpp {

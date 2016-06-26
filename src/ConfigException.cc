@@ -1,6 +1,9 @@
 #include "ConfigException.h"
 #include "ConfigUtils.h"
 
+#include <cstdio>
+#include <cstdarg>
+
 namespace jcpp {
 namespace configure {
 

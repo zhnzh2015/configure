@@ -1,5 +1,6 @@
 #include "ConfigGroup.h"
 
+#include <cstdio>
 #include <boost/foreach.hpp>
 #include <glog/logging.h>
 

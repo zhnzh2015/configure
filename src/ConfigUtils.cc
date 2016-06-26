@@ -1,4 +1,6 @@
 #include "ConfigUtils.h"
+#include <cstdio>
+#include <cstdarg>
 #include <errno.h>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
