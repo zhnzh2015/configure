@@ -27,14 +27,12 @@ key : value
 - 一般情况下，value值仍然以行尾为结束，但增加了转义字符的概念。
 
 转义字符：如果配置项value里面要出现引号、不可见字符、白空格等，一般是很难配置进去的，所以增加了对转义字符的支持。
-
 如果value的第一个非空白字符是双引号，那么转义字符就会生效，value值就会以C风格的字符串进行解析。示例：
 
-#下面这个是普通的字符串
+\#下面这个是普通的字符串
 key1 : Hello world!
-#下面这个是一个以双引号开始的字符串，我们以C风格进行解析,\t会被解析为制表符，\x41解析为'A'，\n为回车
+\#下面这个是一个以双引号开始的字符串，我们以C风格进行解析,\t会被解析为制表符，\x41解析为'A'，\n为回车
 key2 : "\tThis is \x41 New Style!\n"
-
 
 ***转义字符表***
 
@@ -57,7 +55,7 @@ key2 : "\tThis is \x41 New Style!\n"
 -------------
 ***语法格式：***
 
-#使用井号注释，空行会被无视
+\#使用井号注释，空行会被无视
 全局Key值 : Value值
 
 [Group1]
@@ -67,11 +65,11 @@ key2 : "\tThis is \x41 New Style!\n"
 [Group1.SubGroup1]
 SubGroup1的Key值 : Value值
 
-#上述SubGroup1可以简写成以下形式：
+\#上述SubGroup1可以简写成以下形式：
 [.SubGroup2]
-#下面这个是SubGroup2的子Group，前面有两个点。它相当于[Group.SubGroup2.MoreSubGroup]
+\#下面这个是SubGroup2的子Group，前面有两个点。它相当于[Group.SubGroup2.MoreSubGroup]
 [..MoreSubGroup]
-#下面这个相当于[Group.SubGroup3]
+\#下面这个相当于[Group.SubGroup3]
 [.SubGroup3]
 
 [Group2]
